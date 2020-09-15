@@ -22,8 +22,12 @@ def showTables(conn):
     curr.execute(query)
     return curr.fetchall()
 
+def dropTable(conn, tablename):
+    query = 'DROP TABLE ' + tablename
+    curr = conn.cursor()
+    curr.execute(query)
 
-
+# SELECT atribute1,atribute2,... FROM tablename WHERE ... = ... ;
 def selectFrom(tablename, conn, attributes, whereClause, key):
     key = " " + key + " "
 
@@ -50,40 +54,62 @@ def selectFrom(tablename, conn, attributes, whereClause, key):
 def deleteFrom(tablename, conn, whereClause, key):
     key = ' ' + key + ' '
     
-    where = [k + '= "' + v + '"'for k,v in whereClause.items()]
+    where = [k + ' = "' + v + '"'for k,v in whereClause.items()]
     where = key.join(where)
-    query = 'DELETE FROM ' + tablename + ' WHERE ' + where;
+    query = 'DELETE FROM ' + tablename + ' WHERE ' + where
     #print(query)
     curr = conn.cursor()
     curr.execute(query);
     conn.commit()
 
+# UPDATE tablename SET ... = ... WHERE ... = ... ;
+def UpdateTable(conn, tablename, updates, whereClause = {}, key = 'AND'):
+    key = ' ' + key + ' '
+    updates = [k + ' = "' + v + '"' for k, v in updates.items()]
+    updates = ', '.join(updates)
+
+    if whereClause :
+        where  = [k + ' = "' + v + '"' for k, v in whereClause.items()]
+        where = key.join(where)
+        query = 'UPDATE ' + tablename + ' SET ' + updates + ' WHERE ' + where
+    else :
+        query = 'UPDATE ' + tablename + ' SET ' + updates
+        
+    #print(query)
+    curr = conn.cursor()
+    curr.execute(query)
+    conn.commit()
+
 
 conn = connectDB('Sample')
-db = 'employee'
+tablename = 'employee'
 
-#display tables
-# result = showTables(conn)
-# for x in result:
-#     print(x)
-    
-#select query 
+# display tables
+result = showTables(conn)
+for x in result:
+    print(x)
+print('_______________________________')
+# select query 
 attibutes = ['firstname', 'middlename', 'lastname']
 where = {}
-result = selectFrom(db, conn, attibutes, where, 'AND')
+result = selectFrom(tablename, conn, attibutes, where, 'AND')
 
 for x in result:
     print(x)
 
-where = {'firstname': 'Leslie','lastname': 'Baker' }
+# where = {'firstname': 'Leslie','lastname': 'Baker' }
 
-deleteFrom('employee', conn, where,'AND')
+
+# deleteFrom('employee', conn, where,'AND')
+# print('_______________________________')
+
+updates = { 'firstname': 'Ashutosh', 'lastname' : 'Muley'}
+where= { 'firstname': 'Lynn', 'lastname' : 'Dennis'}
+UpdateTable(conn, tablename, updates, where)
+
 print('_______________________________')
-result = selectFrom(db, conn, attibutes, {}, 'AND')
 
-
-
+result = selectFrom(tablename, conn, attibutes, {}, 'AND')
 
 for x in result:
     print(x)
-
