@@ -1,115 +1,76 @@
 import mysql.connector
-from dotenv import load_dotenv
-import os 
-
-load_dotenv()
-
-def connectDB(database):
-    user = 'muleyashutosh'
-    password = os.getenv('mySQL_muleyashutosh_password')
-    #print(password)
-    host = 'localhost'
-    database = database
-    conn = mysql.connector.connect(host = host,
-                                    user = user,
-                                    password = password,
-                                    database = database)
-    return conn
-
-def showTables(conn):
-    curr = conn.cursor() 
-    query = 'SHOW TABLES;'
-    curr.execute(query)
-    return curr.fetchall()
-
-def dropTable(conn, tablename):
-    query = 'DROP TABLE ' + tablename
-    curr = conn.cursor()
-    curr.execute(query)
-
-# SELECT atribute1,atribute2,... FROM tablename WHERE ... = ... ;
-def selectFrom(tablename, conn, attributes, whereClause, key):
-    key = " " + key + " "
-
-    if len(attibutes) == 0:
-        attr = '*'
-    else:
-        attr = ",".join(attributes)
-
-    whereClause = [ k + ' = "' + v + '"' for k,v in whereClause.items() ]
-
-    if len(whereClause) == 0:
-        where = ";"
-    else:
-        where = " WHERE " + key.join(whereClause) + ';'
-    search = 'SELECT ' + attr + ' FROM ' + tablename + where
-
-    #print(search)
-    curr = conn.cursor()
-    curr.execute(search)
-    return curr.fetchall()
 
 
-#DELETE FROM tablename WHERE 
-def deleteFrom(tablename, conn, whereClause, key):
-    key = ' ' + key + ' '
+class Workbench:
+    def __init__(self, database, host = 'localhost', user = 'root', password = ''):
+        self.user = user
+        self.host = host
+        self.database= database
+        self.password = password
+        self.connectDB()
     
-    where = [k + ' = "' + v + '"'for k,v in whereClause.items()]
-    where = key.join(where)
-    query = 'DELETE FROM ' + tablename + ' WHERE ' + where
-    #print(query)
-    curr = conn.cursor()
-    curr.execute(query);
-    conn.commit()
+    def connectDB(self):
+        self.conn = mysql.connector.connect(host = self.host,
+                                        user = self.user,
+                                        password = self.password,
+                                        database = self.database)
 
-# UPDATE tablename SET ... = ... WHERE ... = ... ;
-def UpdateTable(conn, tablename, updates, whereClause = {}, key = 'AND'):
-    key = ' ' + key + ' '
-    updates = [k + ' = "' + v + '"' for k, v in updates.items()]
-    updates = ', '.join(updates)
+    def showTables(self):
+        curr = self.conn.cursor() 
+        query = 'SHOW TABLES;'
+        curr.execute(query)
+        return curr.fetchall()
+    
+    def dropTable(self, tablename):
+        query = 'DROP TABLE ' + tablename
+        curr = self.conn.cursor()
+        curr.execute(query)
+    
+    def selectFrom(self, tablename, attributes = [], whereClause = {}, key = 'AND'):
+        key = " " + key + " "
 
-    if whereClause :
-        where  = [k + ' = "' + v + '"' for k, v in whereClause.items()]
-        where = key.join(where)
-        query = 'UPDATE ' + tablename + ' SET ' + updates + ' WHERE ' + where
-    else :
-        query = 'UPDATE ' + tablename + ' SET ' + updates
+        if len(attributes) == 0:
+            attr = '*'
+        else:
+            attr = ",".join(attributes)
+
+        whereClause = [ k + ' = "' + v + '"' for k,v in whereClause.items() ]
+
+        if len(whereClause) == 0:
+            where = ";"
+        else:
+            where = " WHERE " + key.join(whereClause) + ';'
+        search = 'SELECT ' + attr + ' FROM ' + tablename + where
+
+        #print(search)
+        curr = self.conn.cursor()
+        curr.execute(search)
+        return curr.fetchall()
+
+    def deleteFrom(self, tablename, whereClause = {}, key = 'AND'):
+        key = ' ' + key + ' '
         
-    #print(query)
-    curr = conn.cursor()
-    curr.execute(query)
-    conn.commit()
+        where = [k + ' = "' + v + '"'for k,v in whereClause.items()]
+        where = key.join(where)
+        query = 'DELETE FROM ' + tablename + ' WHERE ' + where
+        #print(query)
+        curr = self.conn.cursor()
+        curr.execute(query);
+        self.conn.commit()
 
+    def UpdateTable(self, tablename, updates, whereClause = {}, key = 'AND'):
+        key = ' ' + key + ' '
+        updates = [k + ' = "' + v + '"' for k, v in updates.items()]
+        updates = ', '.join(updates)
 
-conn = connectDB('Sample')
-tablename = 'employee'
-
-# display tables
-result = showTables(conn)
-for x in result:
-    print(x)
-print('_______________________________')
-# select query 
-attibutes = ['firstname', 'middlename', 'lastname']
-where = {}
-result = selectFrom(tablename, conn, attibutes, where, 'AND')
-
-for x in result:
-    print(x)
-
-# where = {'firstname': 'Leslie','lastname': 'Baker' }
-
-
-# deleteFrom('employee', conn, where,'AND')
-# print('_______________________________')
-
-updates = { 'firstname': 'Ashutosh', 'lastname' : 'Muley'}
-where= { 'firstname': 'Lynn', 'lastname' : 'Dennis'}
-UpdateTable(conn, tablename, updates, where)
-
-print('_______________________________')
-
-result = selectFrom(tablename, conn, attibutes, {}, 'AND')
-
-for x in result:
-    print(x)
+        if whereClause :
+            where  = [k + ' = "' + v + '"' for k, v in whereClause.items()]
+            where = key.join(where)
+            query = 'UPDATE ' + tablename + ' SET ' + updates + ' WHERE ' + where
+        else :
+            query = 'UPDATE ' + tablename + ' SET ' + updates
+            
+        #print(query)
+        curr = self.conn.cursor()
+        curr.execute(query)
+        self.conn.commit()
