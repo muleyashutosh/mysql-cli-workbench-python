@@ -4,8 +4,33 @@ MySQL Workbench Module
 
 import mysql.connector
 
+class Column:
+    def __init__(self, name, datatype=None, constraints=[False, True, False], length=None):
+        self.name = name
+        self.datatype = datatype
+        self.length = length
+        self.pkey = constraints[0]
+        self.notnull = constraints[1]
+        self.auto_inc = constraints[2]
+        self.rstring = ''
+    
+    def __str__(self):
+        if(self.rstring):
+            return self.rstring
+        self.rstring = ""
+        if self.length is None:
+            self.rstring = self.name + ' ' + self.datatype
+        else:
+            self.rstring =  self.name + ' ' + self.datatype + '(' + str(self.length) + ')'
+        if(self.pkey):
+            self.rstring += ' PRIMARY KEY'
+        if(self.notnull):
+            self.rstring += ' NOT NULL'
+        if(self.auto_inc):
+            self.rstring += ' AUTO_INCREMENT'
+        return self.rstring
 
-class Workbench:
+class Workbench(Column):
     """
     MySQL Workbench Class
     """
@@ -35,6 +60,44 @@ class Workbench:
                                             password=self.password,
                                             database=self.database)
 
+    def create_table(self, tablename):
+        """
+        This function creates the a table with the given tablename and entities.
+        INPUT: tablename
+        """
+        attr = []
+        n = int(input('Enter No of attributes:-> '))
+        prim_set = False
+        count = 1
+        for _ in range(n):
+            name = input('Enter the name of column {}:-> '.format(count)).replace(' ', '_')
+            datatype = input('Enter the datatype of column:-> ')
+            if not prim_set:
+                prim = input('Set Primary Key ? ( Y / N ):-> ')
+            notnull = input('Set NOT NULL? ( Y / N ):-> ')
+            if datatype.lower() == 'int':
+                auto_inc = input('Set Auto_Increment? ( Y / N ):-> ')
+            else:
+                auto_inc = 'n'
+            constr = [prim.lower() == 'y', notnull.lower() == 'y', auto_inc == 'y']
+            if prim.lower() == 'y':
+                prim_set = True
+                prim = 'n'
+            if datatype.lower() == 'varchar':
+                length = int(input('Enter length of column:-> '))
+                attr.append(Column(name, datatype, constr, length))
+            else:
+                attr.append(Column(name, datatype, constr))
+            count += 1
+        attr = [str(x) for x in attr]
+        query = 'CREATE TABLE ' + tablename + '(' + ', '.join(attr) + ')'
+        print('\n', query, '\n')
+        if(self.conn):
+            curr = self.conn.cursor()
+        else:
+            self.connect_db()
+            curr = self.conn.cursor()
+        curr.execute(query)
 
     def show_tables(self):
         """

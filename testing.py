@@ -9,9 +9,5 @@ myobject = Workbench('Sample',user = 'muleyashutosh', password =  os.getenv('myS
 print('MYSQL VERSION: ', myobject.conn.get_server_info())
 
 attributes = []
-tablename = 'employee'
-#myobject.dropTable(tablename)
-result = help(myobject.select_from)
-
-for x in result:
-    print(x)
+tablename = 'student'
+myobject.create_table(tablename)
