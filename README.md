@@ -1,6 +1,4 @@
 
 # MYSQL CLI-WORKBENCH
-
-This Project is based on python functions.
-
+A simple python Package to easily perform simple MySQL operations on a database using python without typing a single MySQL Query.
 
